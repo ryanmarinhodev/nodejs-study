@@ -1,17 +1,14 @@
 import express from 'express';
 import { pool } from './mysql';
 import { v4 as uuidv4 } from 'uuid';
-import { hash } from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import { hash, compare } from 'bcrypt';
+import { sign } from 'jsonwebtoken';
 
 const app = express();
 app.use(express.json());
 
-const JWT_SECRET = 'your_secret_key'; // Certifique-se de que esta chave está configurada corretamente
-
-app.post('/user', (request, response) => {
+app.post('/user/sign-up', (request, response) => {
   const { name, email, password } = request.body;
-  
   pool.getConnection((error: any, connection: any) => {
     if (error) {
       return response.status(500).json({ error });
@@ -19,36 +16,69 @@ app.post('/user', (request, response) => {
 
     hash(password, 10, (err, hashedPassword) => {
       if (err) {
-        return response.status(500).json({ error: err });
+        return response.status(500).json({ error });
       }
-
-      const userId = uuidv4();
 
       connection.query(
         'INSERT INTO users (user_id, name, email, password) VALUES (?,?,?,?)',
-        [userId, name, email, hashedPassword],
-        (error: any, result: any, fields: any) => {
+        [uuidv4(), name, email, hashedPassword],
+        (error: any) => {
           connection.release();
           if (error) {
-            return response.status(400).json({ error });
+            return response.status(400).json(error);
           }
-
-          // Gerar o token JWT
-          const token = jwt.sign(
-            {
-              user_id: userId,
-              name,
-              email
-            },
-            JWT_SECRET,
-            { expiresIn: '1h' } // O token expira em 1 hora
-          );
-
-          // Retornar o token junto com a resposta de sucesso
-          return response.status(200).json({ success: true, token });
+          response.status(200).json({ success: true });
         }
       );
     });
+  });
+});
+
+app.post('/user/sign-in', (request, response) => {
+  const { email, password } = request.body;
+  pool.getConnection((error: any, connection: any) => {
+    if (error) {
+      return response.status(500).json({ error: "Erro na conexão com o banco de dados" });
+    }
+
+    connection.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email],
+      (error: any, result: any[]) => {
+        connection.release();
+        if (error) {
+          return response.status(400).json({ error: "Erro na autenticação" });
+        }
+
+        if (result.length === 0) {
+          return response.status(400).json({ error: "Usuário não encontrado" });
+        }
+
+        const user = result[0]; // Acessando a primeira posição do array
+
+        compare(password, user.password, (err, isMatch) => {
+          if (err) {
+            return response.status(400).json({ error: "Erro na autenticação" });
+          }
+
+          if (isMatch) {
+            const token = sign(
+              {
+                id: user.user_id,
+                email: user.email
+              },
+              "segredo",
+              { expiresIn: "1d" }
+            );
+
+            console.log(token);
+            return response.status(200).json({ token });
+          } else {
+            return response.status(400).json({ error: "Senha incorreta" });
+          }
+        });
+      }
+    );
   });
 });
 
