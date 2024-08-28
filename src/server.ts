@@ -6,7 +6,6 @@ import { sign } from 'jsonwebtoken';
 
 const app = express();
 app.use(express.json());
-
 app.post('/user/sign-up', (request, response) => {
   const { name, email, password } = request.body;
   pool.getConnection((error: any, connection: any) => {
@@ -20,7 +19,7 @@ app.post('/user/sign-up', (request, response) => {
       }
 
       connection.query(
-        'INSERT INTO users (user_id, name, email, password) VALUES (?,?,?,?)',
+        'INSERT INTO user (`user-id`, name, email, password) VALUES (?,?,?,?)',
         [uuidv4(), name, email, hashedPassword],
         (error: any) => {
           connection.release();
@@ -42,7 +41,7 @@ app.post('/user/sign-in', (request, response) => {
     }
 
     connection.query(
-      'SELECT * FROM users WHERE email = ?',
+      'SELECT * FROM user WHERE email = ?',
       [email],
       (error: any, result: any[]) => {
         connection.release();
@@ -83,5 +82,5 @@ app.post('/user/sign-in', (request, response) => {
 });
 
 app.listen(4000, () => {
-  console.log('Server is running on port 4000');
+  console.log('Servidor rodando na porta 4000');
 });
