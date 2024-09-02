@@ -6,20 +6,20 @@ import { sign } from 'jsonwebtoken';
 
 
 class UserRepository {
-  create(request: Request, response: Response){
+  create(request: Request, response: Response) {
     const { name, email, password } = request.body;
     pool.getConnection((error: any, connection: any) => {
       if (error) {
         return response.status(500).json({ error });
       }
-  
+
       hash(password, 10, (err, hashedPassword) => {
         if (err) {
           return response.status(500).json({ error });
         }
-  
+
         connection.query(
-          'INSERT INTO user (`user-id`, name, email, password) VALUES (?,?,?,?)',
+          "INSERT INTO user (`user-id`, name, email, password) VALUES (?,?,?,?)",
           [uuidv4(), name, email, hashedPassword],
           (error: any) => {
             connection.release();
@@ -30,48 +30,52 @@ class UserRepository {
           }
         );
       });
-    })
+    });
   }
 
-   
-  
   login(request: Request, response: Response) {
     const { email, password } = request.body;
     pool.getConnection((error: any, connection: any) => {
       if (error) {
-        return response.status(500).json({ error: "Erro na conexão com o banco de dados" });
+        return response
+          .status(500)
+          .json({ error: "Erro na conexão com o banco de dados" });
       }
-  
+
       connection.query(
-        'SELECT * FROM user WHERE email = ?',
+        "SELECT * FROM user WHERE email = ?",
         [email],
         (error: any, result: any[]) => {
           connection.release();
           if (error) {
             return response.status(400).json({ error: "Erro na autenticação" });
           }
-  
+
           if (result.length === 0) {
-            return response.status(400).json({ error: "Usuário não encontrado" });
+            return response
+              .status(400)
+              .json({ error: "Usuário não encontrado" });
           }
-  
+
           const user = result[0]; // Acessando a primeira posição do array
-  
+
           compare(password, user.password, (err, isMatch) => {
             if (err) {
-              return response.status(400).json({ error: "Erro na autenticação" });
+              return response
+                .status(400)
+                .json({ error: "Erro na autenticação" });
             }
-  
+
             if (isMatch) {
               const token = sign(
                 {
                   id: user.user_id,
-                  email: user.email
+                  email: user.email,
                 },
                 "segredo",
                 { expiresIn: "1d" }
               );
-  
+
               console.log(token);
               return response.status(200).json({ token });
             } else {
