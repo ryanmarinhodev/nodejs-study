@@ -26,7 +26,7 @@ class UserRepository {
             if (error) {
               return response.status(400).json(error);
             }
-            response.status(200).json({ success: true });
+            response.status(200).json({ mesage: 'Usuário criado com sucesso' });
           }
         );
       });
@@ -72,12 +72,12 @@ class UserRepository {
                   id: user.user_id,
                   email: user.email,
                 },
-                "segredo",
+                process.env.Secret as string,
                 { expiresIn: "1d" }
               );
 
               console.log(token);
-              return response.status(200).json({ token });
+              return response.status(200).json({ token, message: 'Autenticado com sucesso' });
             } else {
               return response.status(400).json({ error: "Senha incorreta" });
             }
