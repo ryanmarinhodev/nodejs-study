@@ -26,7 +26,9 @@ class UserRepository {
             if (error) {
               return response.status(400).json(error);
             }
-            response.status(200).json({ message: 'Usuário criado com sucesso' });
+            response
+              .status(200)
+              .json({ message: 'Usuário criado com sucesso' });
           }
         );
       });
@@ -37,27 +39,34 @@ class UserRepository {
     const { email, password } = request.body;
     pool.getConnection((error: any, connection: any) => {
       if (error) {
-        return response.status(500).json({ error: 'Erro na conexão com o banco de dados' });
+        return response
+          .status(500)
+          .json({ error: 'Erro na conexão com o banco de dados' });
       }
 
       connection.query(
         'SELECT * FROM user WHERE email = ?',
         [email],
-        (error: any, result: any[]) => { // Casting do resultado para any[]
+        (error: any, result: any[]) => {
+          // Casting do resultado para any[]
           connection.release();
           if (error) {
             return response.status(400).json({ error: 'Erro na autenticação' });
           }
 
           if (!Array.isArray(result) || result.length === 0) {
-            return response.status(404).json({ error: 'Usuário não encontrado' });
+            return response
+              .status(404)
+              .json({ error: 'Usuário não encontrado' });
           }
 
           const user = result[0];
 
           compare(password, user.password, (err, isMatch) => {
             if (err) {
-              return response.status(400).json({ error: 'Erro na autenticação' });
+              return response
+                .status(400)
+                .json({ error: 'Erro na autenticação' });
             }
 
             if (isMatch) {
@@ -70,7 +79,9 @@ class UserRepository {
                 { expiresIn: '1d' }
               );
 
-              return response.status(200).json({ token, message: 'Autenticado com sucesso' });
+              return response
+                .status(200)
+                .json({ token, message: 'Autenticado com sucesso' });
             } else {
               return response.status(400).json({ error: 'Senha incorreta' });
             }
@@ -81,38 +92,63 @@ class UserRepository {
   }
 
   getUser(request: any, response: any) {
+    console.log('request.user:', request.user); // Verifica o conteúdo do usuário decodificado
+
+    if (!request.user || !request.user.email) {
+      return response
+        .status(400)
+        .send({ error: 'Token inválido, email não encontrado' });
+    }
     try {
-      const decode: any = verify(request.headers.authorization, process.env.SECRET as string);
+      console.log('Authorization Header:', request.headers.authorization);
+
+      const token = request.headers.authorization?.split(' ')[1]; // Pega o token sem o "Bearer"
+      if (!token) {
+        return response
+          .status(400)
+          .send({ error: 'Token não fornecido ou mal formatado' });
+      }
+
+      console.log('SECRET Key:', process.env.SECRET);
+
+      const decode: any = verify(token, process.env.SECRET as string);
+      console.log('Decoded Token:', decode);
+
       if (decode.email) {
         pool.getConnection((error, conn) => {
           if (error) {
-            return response.status(500).send({ error: 'Erro ao conectar ao banco de dados' });
+            console.error('Erro de conexão com o banco de dados:', error);
+            return response
+              .status(500)
+              .send({ error: 'Erro ao conectar ao banco de dados' });
           }
 
           conn.query(
-            'SELECT * FROM users WHERE email = ?',
+            'SELECT * FROM user WHERE email = ?',
             [decode.email],
-            (error, resultado: any[]) => { // Casting do resultado para any[]
+            (error, resultado: any[]) => {
               conn.release();
 
               if (error) {
+                console.error('Erro na consulta ao banco de dados:', error); // Adiciona o log do erro
                 return response.status(400).send({
                   error: 'Erro na consulta ao banco de dados',
                   response: null,
                 });
               }
 
-              // Verificação do tipo e log do resultado para inspecionar o retorno
               if (!Array.isArray(resultado) || resultado.length === 0) {
-                return response.status(404).send({ error: 'Usuário não encontrado' });
+                return response
+                  .status(404)
+                  .send({ error: 'Usuário não encontrado' });
               }
 
               const user = resultado[0];
-              console.log(user); // Adicione isso para ver a estrutura real do objeto
+              console.log('User Found:', user);
 
               return response.status(200).send({
                 user: {
-                  id: user['user-id'], // Correção do acesso ao ID com hífen
+                  id: user['user-id'],
                   nome: user.name,
                   email: user.email,
                 },
@@ -121,9 +157,12 @@ class UserRepository {
           );
         });
       } else {
-        return response.status(400).send({ error: 'Token inválido, email não encontrado' });
+        return response
+          .status(400)
+          .send({ error: 'Token inválido, email não encontrado' });
       }
     } catch (err) {
+      console.error('Erro ao verificar o token:', err);
       return response.status(401).send({ error: 'Token inválido' });
     }
   }
