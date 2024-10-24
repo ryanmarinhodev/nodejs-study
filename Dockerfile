@@ -1,33 +1,36 @@
-# Etapa de construção
-FROM node:14-alpine AS build
+# Etapa de construção (build)
+FROM node:16-alpine AS build
 
+# Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia o package.json e package-lock.json
+# Copia o package.json e o package-lock.json
 COPY package*.json ./
 
-# Instala as dependências
+# Instala as dependências (incluindo as de desenvolvimento)
 RUN npm install
 
-# Copia o restante do código
+# Copia todo o código fonte para o diretório de trabalho
 COPY . .
 
-# Compila o TypeScript
+# Compila o código TypeScript para JavaScript
 RUN npm run build
 
 # Etapa final - Ambiente de produção
-FROM node:16 AS build
+FROM node:16-alpine
 
+# Define o diretório de trabalho para a etapa de produção
 WORKDIR /app
 
-# Copia os arquivos do build
-COPY --from=build /app ./
+# Copia apenas os arquivos compilados da etapa de construção
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/package*.json ./
 
 # Instala apenas as dependências de produção
 RUN npm install --omit=dev
 
-# Exponha a porta
+# Expõe a porta da aplicação
 EXPOSE 3000
 
-# Comando para iniciar a aplicação
-CMD ["npm", "start"]
+# Comando para rodar a aplicação
+CMD ["node", "./dist/server.js"]
