@@ -12,6 +12,6 @@ COPY . .
 
 RUN chown -R node:node /app
 
-USER node
+USER root
 
 RUN npm run build
