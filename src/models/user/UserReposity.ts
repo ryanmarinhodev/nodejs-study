@@ -19,7 +19,7 @@ class UserRepository {
         }
 
         connection.query(
-          'INSERT INTO user (`user-id`, name, email, password) VALUES (?,?,?,?)',
+          'INSERT INTO users (user_id, name, email, password) VALUES (?,?,?,?)',
           [uuidv4(), name, email, hashedPassword],
           (error: any) => {
             connection.release();
@@ -45,7 +45,7 @@ class UserRepository {
       }
 
       connection.query(
-        'SELECT * FROM user WHERE email = ?',
+        'SELECT * FROM users WHERE email = ?',
         [email],
         (error: any, result: any[]) => {
           // Casting do resultado para any[]
@@ -68,11 +68,10 @@ class UserRepository {
                 .status(400)
                 .json({ error: 'Erro na autenticação' });
             }
-
             if (isMatch) {
               const token = sign(
                 {
-                  id: user['user-id'], // Correção para o nome da propriedade com hífen
+                  id: user['user-id'],
                   email: user.email,
                 },
                 process.env.SECRET as string,
@@ -124,13 +123,13 @@ class UserRepository {
           }
 
           conn.query(
-            'SELECT * FROM user WHERE email = ?',
+            'SELECT * FROM users WHERE email = ?',
             [decode.email],
             (error, resultado: any[]) => {
               conn.release();
 
               if (error) {
-                console.error('Erro na consulta ao banco de dados:', error); // Adiciona o log do erro
+                console.error('Erro na consulta ao banco de dados:', error);
                 return response.status(400).send({
                   error: 'Erro na consulta ao banco de dados',
                   response: null,
@@ -148,7 +147,7 @@ class UserRepository {
 
               return response.status(200).send({
                 user: {
-                  id: user['user-id'],
+                  id: user['user_id'],
                   nome: user.name,
                   email: user.email,
                 },
