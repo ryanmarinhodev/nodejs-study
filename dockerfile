@@ -13,8 +13,11 @@ RUN npm install --omit=dev
 # Copiar o restante dos arquivos da aplicação
 COPY . .
 
+# Garantir que todos os arquivos tenham permissões corretas
+RUN chmod -R 755 .
+
 # Compilar o TypeScript para JavaScript
-RUN npm run build
+RUN npx tsc
 
 # Expor a porta em que o servidor da sua aplicação vai rodar (por exemplo, 3000)
 EXPOSE 3000
