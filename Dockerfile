@@ -1,7 +1,6 @@
 # Etapa de construção (build)
 FROM node:16-alpine AS build
 
-# Define o diretório de trabalho dentro do container
 WORKDIR /app
 
 # Copia o package.json e o package-lock.json
@@ -9,6 +8,9 @@ COPY package*.json ./
 
 # Instala as dependências (incluindo as de desenvolvimento)
 RUN npm install
+
+# Garante que o TypeScript tenha permissões de execução
+RUN chmod +x ./node_modules/.bin/tsc
 
 # Copia todo o código fonte para o diretório de trabalho
 COPY . .
@@ -19,7 +21,6 @@ RUN npm run build
 # Etapa final - Ambiente de produção
 FROM node:16-alpine
 
-# Define o diretório de trabalho para a etapa de produção
 WORKDIR /app
 
 # Copia apenas os arquivos compilados da etapa de construção
