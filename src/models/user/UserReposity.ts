@@ -1,6 +1,6 @@
 import { pool } from '../../mysql';
 import { v4 as uuidv4 } from 'uuid';
-import { hash, compare } from 'bcrypt';
+import { hash, compare } from 'bcryptjs';
 import { Request, Response } from 'express';
 import { sign, verify } from 'jsonwebtoken';
 
