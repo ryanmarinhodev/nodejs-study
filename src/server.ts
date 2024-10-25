@@ -28,6 +28,14 @@ app.use('/videos', videosRoutes);
 
 console.log(process.env.SECRET);
 
+app.use(
+  cors({
+    origin: '*', // Permite requisições de qualquer origem
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+
 const PORT = process.env.PORT || 4001;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
