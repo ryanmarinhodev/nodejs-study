@@ -145,6 +145,7 @@ class UserRepository {
               const user = resultado[0];
               console.log('User Found:', user);
 
+              //teste de commit
               return response.status(200).send({
                 user: {
                   id: user['user_id'],
