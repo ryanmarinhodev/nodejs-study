@@ -101,6 +101,7 @@ class UserRepository {
     console.log('Authorization Header:', request.headers.authorization);
     console.log(process.env.SECRET);
     console.log('Valor de process.env.SECRET:', process.env.SECRET);
+    console.log(`Valor de process.env.SECRET: ${process.env.SECRET}`);
 
     if (!request.user || !request.user.email) {
       console.warn('Token inválido, email não encontrado. User:', request.user);
@@ -110,6 +111,9 @@ class UserRepository {
     }
     try {
       const token = request.headers.authorization?.split(' ')[1];
+      console.log('Token Recebido:', token);
+      console.log('Ambiente:', process.env.NODE_ENV); // Verifica se o ambiente está corretamente definido
+
       if (!token) {
         console.warn('Token não encontrado no cabeçalho de autorização.');
         return response.status(401).send({ error: 'Token não fornecido.' });
