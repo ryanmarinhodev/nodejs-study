@@ -76,7 +76,7 @@ class UserRepository {
             if (isMatch) {
               const token = sign(
                 {
-                  id: user['user_id'], // Corrija aqui: 'user-id' deve ser 'user_id'
+                  id: user['user_id'],
                   email: user.email,
                 },
                 process.env.SECRET as string,
