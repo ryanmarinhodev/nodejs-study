@@ -98,6 +98,7 @@ class UserRepository {
 
   getUser(request: any, response: any) {
     console.log('request.user:', request.user); // Verifica o conteúdo do usuário decodificado
+    console.log('Authorization Header:', request.headers.authorization);
     console.log(process.env.SECRET);
 
     if (!request.user || !request.user.email) {
@@ -115,7 +116,7 @@ class UserRepository {
 
       console.log('SECRET Key:', process.env.SECRET); // Log do segredo
       const decode: any = verify(token, process.env.SECRET as string);
-      console.log('Decoded Token:', decode); // Log do token decodificado
+      console.log('Decoded Token:', decode);
 
       if (decode.email) {
         pool.getConnection((error, conn) => {
