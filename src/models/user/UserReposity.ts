@@ -107,11 +107,9 @@ class UserRepository {
     }
     try {
       const token = request.headers.authorization?.split(' ')[1];
-      console.log('Token recebido na rota getUser:', token); // Log do token recebido
       if (!token) {
-        return response
-          .status(400)
-          .send({ error: 'Token não fornecido ou mal formatado' });
+        console.warn('Token não encontrado no cabeçalho de autorização.');
+        return response.status(401).send({ error: 'Token não fornecido.' });
       }
 
       console.log('SECRET Key:', process.env.SECRET); // Log do segredo

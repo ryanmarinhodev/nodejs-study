@@ -21,8 +21,6 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.use(cors());
-
 app.use('/user', userRouter);
 app.use('/videos', videosRoutes);
 
