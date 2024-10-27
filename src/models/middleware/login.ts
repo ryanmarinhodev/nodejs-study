@@ -4,6 +4,8 @@ const login = (req: any, res: any, next: any) => {
   try {
     const token = req.headers.authorization?.split(' ')[1]; // Extrai o token
 
+    console.log('jsonwebtoken version:', token.version);
+
     if (!token) {
       return res.status(401).json({ message: 'Token não fornecido' });
     }
