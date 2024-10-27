@@ -98,6 +98,7 @@ class UserRepository {
 
   getUser(request: any, response: any) {
     console.log('request.user:', request.user); // Verifica o conteúdo do usuário decodificado
+    console.log(process.env.SECRET);
 
     if (!request.user || !request.user.email) {
       console.warn('Token inválido, email não encontrado. User:', request.user);
