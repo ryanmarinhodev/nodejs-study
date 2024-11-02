@@ -102,6 +102,7 @@ class UserRepository {
     console.log(process.env.SECRET);
     console.log('Valor de process.env.SECRET:', process.env.SECRET);
     console.log(`Valor de process.env.SECRET: ${process.env.SECRET}`);
+    console.log('Valor de SECRET:', process.env.SECRET);
 
     if (!request.user || !request.user.email) {
       console.warn('Token inválido, email não encontrado. User:', request.user);
