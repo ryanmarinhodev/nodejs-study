@@ -14,7 +14,7 @@ userRouter.post('/sign-up', (request, response) => {
 
 userRouter.post('/sign-in', (request, response) => {
   userRepository.login(request, response);
-  console.log('Login requisitado com:', request.body); // Log para ver os dados do login
+  console.log('Login requisitado com:', request.body);
 });
 
 userRouter.get('/get-user', login, (request, response) => {
