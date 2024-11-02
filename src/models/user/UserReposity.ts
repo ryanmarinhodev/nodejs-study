@@ -4,6 +4,8 @@ import { hash, compare } from 'bcryptjs';
 import { Request, Response } from 'express';
 import { sign, verify } from 'jsonwebtoken';
 
+console.log('Ambiente atual:', process.env.NODE_ENV);
+
 class UserRepository {
   create(request: Request, response: Response) {
     const { name, email, password } = request.body;
