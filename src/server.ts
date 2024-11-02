@@ -2,9 +2,11 @@ import userRouter from './routes/userRouter';
 import express from 'express';
 import videosRoutes from './routes/videosRoutes';
 import { config } from 'dotenv';
+import morgan from 'morgan';
 
 config();
 const app = express();
+app.use(morgan('dev'));
 
 const cors = require('cors');
 
