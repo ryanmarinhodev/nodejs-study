@@ -1,8 +1,10 @@
 import { pool } from '../../mysql';
 import { v4 as uuidv4 } from 'uuid';
-import { hash, compare } from 'bcrypt';
+import { hash, compare } from 'bcryptjs';
 import { Request, Response } from 'express';
 import { sign, verify } from 'jsonwebtoken';
+
+console.log('Ambiente atual:', process.env.NODE_ENV);
 
 class UserRepository {
   create(request: Request, response: Response) {
@@ -37,8 +39,10 @@ class UserRepository {
 
   login(request: Request, response: Response) {
     const { email, password } = request.body;
+    console.log('Login requisitado com:', request.body); // Log dos dados de login
     pool.getConnection((error: any, connection: any) => {
       if (error) {
+        console.error('Erro na conexão com o banco de dados:', error);
         return response
           .status(500)
           .json({ error: 'Erro na conexão com o banco de dados' });
@@ -48,22 +52,25 @@ class UserRepository {
         'SELECT * FROM users WHERE email = ?',
         [email],
         (error: any, result: any[]) => {
-          // Casting do resultado para any[]
           connection.release();
           if (error) {
+            console.error('Erro na consulta ao banco de dados:', error);
             return response.status(400).json({ error: 'Erro na autenticação' });
           }
 
           if (!Array.isArray(result) || result.length === 0) {
+            console.warn('Usuário não encontrado:', email);
             return response
               .status(404)
               .json({ error: 'Usuário não encontrado' });
           }
 
           const user = result[0];
+          console.log('Usuário encontrado:', user); // Log do usuário encontrado
 
           compare(password, user.password, (err, isMatch) => {
             if (err) {
+              console.error('Erro ao comparar senhas:', err);
               return response
                 .status(400)
                 .json({ error: 'Erro na autenticação' });
@@ -71,17 +78,18 @@ class UserRepository {
             if (isMatch) {
               const token = sign(
                 {
-                  id: user['user-id'],
+                  id: user['user_id'],
                   email: user.email,
                 },
                 process.env.SECRET as string,
                 { expiresIn: '1d' }
               );
-
+              console.log('Token gerado:', token); // Log do token gerado
               return response
                 .status(200)
                 .json({ token, message: 'Autenticado com sucesso' });
             } else {
+              console.warn('Senha incorreta para o usuário:', email);
               return response.status(400).json({ error: 'Senha incorreta' });
             }
           });
@@ -92,24 +100,29 @@ class UserRepository {
 
   getUser(request: any, response: any) {
     console.log('request.user:', request.user); // Verifica o conteúdo do usuário decodificado
+    console.log('Authorization Header:', request.headers.authorization);
+    console.log(process.env.SECRET);
+    console.log('Valor de process.env.SECRET:', process.env.SECRET);
+    console.log(`Valor de process.env.SECRET: ${process.env.SECRET}`);
+    console.log('Valor de SECRET:', process.env.SECRET);
 
     if (!request.user || !request.user.email) {
+      console.warn('Token inválido, email não encontrado. User:', request.user);
       return response
         .status(400)
         .send({ error: 'Token inválido, email não encontrado' });
     }
     try {
-      console.log('Authorization Header:', request.headers.authorization);
+      const token = request.headers.authorization?.split(' ')[1];
+      console.log('Token Recebido:', token);
+      console.log('Ambiente:', process.env.NODE_ENV); // Verifica se o ambiente está corretamente definido
 
-      const token = request.headers.authorization?.split(' ')[1]; // Pega o token sem o "Bearer"
       if (!token) {
-        return response
-          .status(400)
-          .send({ error: 'Token não fornecido ou mal formatado' });
+        console.warn('Token não encontrado no cabeçalho de autorização.');
+        return response.status(401).send({ error: 'Token não fornecido.' });
       }
 
-      console.log('SECRET Key:', process.env.SECRET);
-
+      console.log('SECRET Key:', process.env.SECRET); // Log do segredo
       const decode: any = verify(token, process.env.SECRET as string);
       console.log('Decoded Token:', decode);
 
@@ -137,13 +150,17 @@ class UserRepository {
               }
 
               if (!Array.isArray(resultado) || resultado.length === 0) {
+                console.warn(
+                  'Usuário não encontrado na consulta:',
+                  decode.email
+                );
                 return response
                   .status(404)
                   .send({ error: 'Usuário não encontrado' });
               }
 
               const user = resultado[0];
-              console.log('User Found:', user);
+              console.log('Usuário encontrado na consulta:', user); // Log do usuário encontrado
 
               return response.status(200).send({
                 user: {
@@ -161,7 +178,7 @@ class UserRepository {
           .send({ error: 'Token inválido, email não encontrado' });
       }
     } catch (err) {
-      console.error('Erro ao verificar o token:', err);
+      console.error('Erro ao verificar o token:', err); // Log do erro
       return response.status(401).send({ error: 'Token inválido' });
     }
   }

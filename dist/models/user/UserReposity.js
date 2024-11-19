@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const mysql_1 = require("../../mysql");
 const uuid_1 = require("uuid");
-const bcrypt_1 = require("bcrypt");
+const bcryptjs_1 = require("bcryptjs");
 const jsonwebtoken_1 = require("jsonwebtoken");
 class UserRepository {
     create(request, response) {
@@ -11,7 +11,7 @@ class UserRepository {
             if (error) {
                 return response.status(500).json({ error });
             }
-            (0, bcrypt_1.hash)(password, 10, (err, hashedPassword) => {
+            (0, bcryptjs_1.hash)(password, 10, (err, hashedPassword) => {
                 if (err) {
                     connection.release();
                     return response.status(500).json({ error });
@@ -48,7 +48,7 @@ class UserRepository {
                         .json({ error: 'Usuário não encontrado' });
                 }
                 const user = result[0];
-                (0, bcrypt_1.compare)(password, user.password, (err, isMatch) => {
+                (0, bcryptjs_1.compare)(password, user.password, (err, isMatch) => {
                     if (err) {
                         return response
                             .status(400)

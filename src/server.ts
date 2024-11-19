@@ -2,9 +2,11 @@ import userRouter from './routes/userRouter';
 import express from 'express';
 import videosRoutes from './routes/videosRoutes';
 import { config } from 'dotenv';
+import morgan from 'morgan';
 
 config();
 const app = express();
+app.use(morgan('dev'));
 
 const cors = require('cors');
 
@@ -21,12 +23,18 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.use(cors());
-
 app.use('/user', userRouter);
 app.use('/videos', videosRoutes);
 
 console.log(process.env.SECRET);
+
+app.use(
+  cors({
+    origin: '*', // Permite requisições de qualquer origem
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
 const PORT = process.env.PORT || 4001;
 app.listen(PORT, () => {
